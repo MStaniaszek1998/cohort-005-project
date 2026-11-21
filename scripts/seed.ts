@@ -72,6 +72,8 @@ async function seed() {
 
   // Drop and recreate tables for a clean seed
   sqlite.exec(`
+    DROP TABLE IF EXISTS bookmarks;
+    DROP TABLE IF EXISTS notes;
     DROP TABLE IF EXISTS comments;
     DROP TABLE IF EXISTS course_ratings;
     DROP TABLE IF EXISTS video_watch_events;
@@ -2067,6 +2069,41 @@ This course is still in draft while the cluster examples are rewritten against t
   markInProgress(students[4].id, course1LessonIds[1]);
 
   console.log(`Created ${countRows(schema.lessonProgress)} lesson progress records.`);
+
+  // ─── Bookmarks and Notes ───
+  // Emma flags two Course 1 lessons to revisit and keeps a Note on one of them
+  // plus one she has moved past. Notes are plain text, so the `#` and `*`
+  // below must show up exactly as typed.
+
+  db.insert(schema.bookmarks)
+    .values([
+      { userId: students[0].id, lessonId: course1LessonIds[4], createdAt: daysAgo(44) },
+      { userId: students[0].id, lessonId: course1LessonIds[17], createdAt: daysAgo(2) },
+    ])
+    .run();
+
+  db.insert(schema.notes)
+    .values([
+      {
+        userId: students[0].id,
+        lessonId: course1LessonIds[4],
+        body: "Come back to this one before the quiz.\n# not a heading, *not* bold",
+        createdAt: daysAgo(44),
+        updatedAt: daysAgo(10),
+      },
+      {
+        userId: students[0].id,
+        lessonId: course1LessonIds[17],
+        body: "Try the exercise again without looking at the solution.",
+        createdAt: daysAgo(2),
+        updatedAt: daysAgo(2),
+      },
+    ])
+    .run();
+
+  console.log(
+    `Created ${countRows(schema.bookmarks)} bookmarks and ${countRows(schema.notes)} notes.`
+  );
 
   // ─── Quiz Attempts ───
 
